@@ -1,6 +1,27 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
+const TendersSchema = new mongoose.Schema({
+  method: {
+      type: String,
+  },
+  coachId: {
+      type: Number,
+  },
+  date: {
+      type: Date(),
+  },
+  durationInMonths: {
+      type: Number,
+  },
+  salary: {
+      type: Number,
+  },
+  contractPlan: {
+      type:String,
+  }
+})
+
 const ActiveContractSchema = new mongoose.Schema({
   team: {
     type: String,
@@ -46,7 +67,8 @@ const CoachSchema = new mongoose.Schema({
   activeContract: ActiveContractSchema,
   career: [
     CareerSchema,
-  ]
+  ],
+  tenders: [TendersSchema]
 })
 
 

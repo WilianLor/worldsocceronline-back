@@ -1,10 +1,19 @@
 const Coach = require('../models/Coaches')
 const User = require('../models/Users')
 import {Request, Response} from 'express'
+const jwt = require('jsonwebtoken')
 import jwt_decode from 'jwt-decode'
 
 interface data {
     id: string,
+}
+
+const authConfig = require('../config/auth.json')
+
+function generateToken(params = {}) {
+    return jwt.sign(params, authConfig.secret, {
+        expiresIn: 86400,
+    })
 }
 
 export default {
@@ -36,7 +45,7 @@ export default {
 
             const coach = await Coach.create(coachData)
 
-            return res.status(201).send({ coach })
+            return res.status(201).send({ coach, token: generateToken({ id: coach.userId, profession: 'Coach'}) })
 
         } catch (err) {
             return res.status(400).send({ error: 'Operation failed' + err})

@@ -2,6 +2,8 @@
   "name": "backend",
   "version": "1.0.0",
   "main": "index.js",
+  "repository": "https://github.com/WilianLor/worldsocceronline.git",
+  "author": "WilianLor <wilian.lorencetto@etec.sp.gov.br>",
   "license": "MIT",
   "dependencies": {
     "@types/cors": "^2.8.8",
