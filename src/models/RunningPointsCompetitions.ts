@@ -8,33 +8,32 @@ const TeamSchema = new mongoose.Schema({
     teamId: {
         type: Schema.Types.ObjectId,
         ref: 'Team',
-    }
-})
-
-const GroupSchema = new mongoose.Schema({
-    teamId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Team',
     },
-    points: {
-        type: Number,
-    },
-    games: {
-        type: Number,
+    position: {
+        type:Number
     },
     victories: {
-        type: Number,
+        type: Number
     },
     draws: {
-        type: Number,
+        type: Number
     },
     defeats: {
-        type: Number,
+        type: Number
+    },
+    concededGoals: {
+        type: Number
+    },
+    goalsScored: {
+        type: Number
+    },
+    goalDifference: {
+        type: Number
     }
 })
 
 const GameSchema = new mongoose.Schema({
-    visitingTeamId: {
+    visitingTeam: {
         type: Schema.Types.ObjectId,
         ref: 'Team',
     },
@@ -52,16 +51,24 @@ const GameSchema = new mongoose.Schema({
     }
 })
 
-const EliminatoryCompetitionSchema = new mongoose.Schema({
+const RegionalCompetition = new mongoose.Schema({
+    competitionId: {
+        type: Schema.Types.ObjectId,
+        ref: 'EliminatorylCompetition',
+    },
+    minPositionForQualify: {
+        type: Number
+    },
+    maxPositionForQualify: {
+        type: Number
+    }
+})
+
+const RunningPointsCompetitionSchema = new mongoose.Schema({
     name: {
         type: String,
         require: true,
         unique: true
-    },
-    regionId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Region',
-        required: true
     },
     pictureUrl: {
         type: String,
@@ -71,20 +78,22 @@ const EliminatoryCompetitionSchema = new mongoose.Schema({
         type: Number,
         require: true
     },
+    countryId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Country',
+        require: true
+    },
     teams: [TeamSchema],
-    group: [GroupSchema],
-    roundOf16Games:[GameSchema],
-    quarterFinalsGames:[GameSchema],
-    semiFinalsGames:[GameSchema],
-    finalGame: GameSchema,
+    qualifyForMainRegionalCompetition: RegionalCompetition,
+    qualifyForSecondaryRegionalCompetition: RegionalCompetition,
     winnerId: {
         type: Schema.Types.ObjectId,
-        ref: 'Team'
+        ref: 'Team',
     },
     award: {
         type: Number
     }
 })
 
-const EliminatoryCompetition = mongoose.model('EliminatoryCompetition', EliminatoryCompetitionSchema)
-module.exports = EliminatoryCompetition
+const RunningPointsCompetition = mongoose.model('RunningPointsCompetition', RunningPointsCompetitionSchema)
+module.exports = RunningPointsCompetition

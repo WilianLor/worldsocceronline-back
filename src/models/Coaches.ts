@@ -1,38 +1,25 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-const TendersSchema = new mongoose.Schema({
+const CoachTendersSchema = new mongoose.Schema({
+  tendersId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Tender',
+  },
   method: {
-      type: String,
-  },
-  coachId: {
-      type: Number,
-  },
-  date: {
-      type: Date(),
-  },
-  durationInMonths: {
-      type: Number,
-  },
-  salary: {
-      type: Number,
-  },
-  contractPlan: {
-      type:String,
+    type: String
   }
 })
 
 const ActiveContractSchema = new mongoose.Schema({
-  team: {
-    type: String,
+  teamId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Team',
   },
   initialDate: {
     type: Date,
   },
   salary: {
-    type: Number,
-  },
-  fineTermination: {
     type: Number,
   },
   monthsDuration: {
@@ -41,14 +28,22 @@ const ActiveContractSchema = new mongoose.Schema({
 })
 
 const CareerSchema = new mongoose.Schema({
-  team: {
-    type: String
+  teamId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Team',
   },
-  winRating: {
-    type: Number,
+  initialDate: {
+    type: Date,
   },
-  monthsDuration: {
-    type: Number,
+  finalDate: {
+    type: Date
+  }
+})
+
+const interestTeamsSchema =  new mongoose.Schema({
+  teamId: {
+    type: Schema.Types.ObjectId,
+        ref: 'Team',
   }
 })
 
@@ -58,17 +53,20 @@ const CoachSchema = new mongoose.Schema({
     required: true
   },
   userId: {
-    type: String,
+    type: Schema.Types.ObjectId,
+    ref: 'User',
     required: true
   },
-  team: {
-    type: String,
+  teamId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Team',
   },
   activeContract: ActiveContractSchema,
   career: [
     CareerSchema,
   ],
-  tenders: [TendersSchema]
+  interestTeams: [interestTeamsSchema],
+  tenders: [CoachTendersSchema]
 })
 
 

@@ -11,14 +11,17 @@ const CountrySchema = new mongoose.Schema({
         require: true
     },
     regionId: {
-        type: Number,
+        type: Schema.Types.ObjectId,
+        ref: 'Region',
         require: true
     },
     mainNacionalCompetitionId: {
-        type: Number
+        type: Schema.Types.ObjectId,
+        ref: 'RunningPointsCompetition',
     },
     secondaryNacionalCompetitionId: {
-        type: Number
+        type: Schema.Types.ObjectId,
+        ref: 'RunningPointsCompetition',
     }
 })
 

@@ -34,9 +34,13 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
-    country: {
-        type: String,
-        required: true
+    countryId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Country',
+    },
+    passwordVersion: {
+        type: Number,
+        default: 1
     }
 })
 

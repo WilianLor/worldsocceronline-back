@@ -7,10 +7,12 @@ const RegionSchema = new mongoose.Schema({
         require: true
     },
     mainRegionalCompetitionId: {
-        type: Number
+        type: Schema.Types.ObjectId,
+        ref: 'EliminatoryCompetition',
     },
     secondaryRegionalCompetitionId: {
-        type: Number
+        type: Schema.Types.ObjectId,
+        ref: 'EliminatoryCompetition',
     }
 })
 

@@ -1,5 +1,7 @@
 const Coach = require('../models/Coaches')
 const User = require('../models/Users')
+const Team = require('../models/Teams')
+const Tender = require('../models/Tenders')
 import {Request, Response} from 'express'
 const jwt = require('jsonwebtoken')
 import jwt_decode from 'jwt-decode'
@@ -45,7 +47,21 @@ export default {
 
             const coach = await Coach.create(coachData)
 
-            return res.status(201).send({ coach, token: generateToken({ id: coach.userId, profession: 'Coach'}) })
+            const data = {
+                token: generateToken({ id: coach.userId, profession: 'Coach'}),
+                profession: "Coach",
+                user: {
+                    userId: user._id,
+                    professionId: coach._id,
+                    username: user.username,
+                    country: user.country,
+                    teamId: "",
+                    admin: user.admin,
+                    passwordVersion: user.passwordVersion
+                }
+            } 
+    
+            return res.status(201).send({ data })
 
         } catch (err) {
             return res.status(400).send({ error: 'Operation failed' + err})
@@ -73,16 +89,180 @@ export default {
         }
     },
 
-    async getIndex(req:Request, res:Response){
+    async showInterest(req: Request, res: Response){
+
+        const {teamId} = req.body
+        
+        const {authorization} = req.headers
+
+        const tokenSplited = authorization.split(' ')
+
+        const token = tokenSplited[1]
+
+        const data: data = jwt_decode(token)
+
+        const {id} = data
+
+        try {
+
+            const coach = await Coach.findOne({userId : id})
+
+            const team = await Team.findOne({ _id : teamId})
+            
+            if(!coach){
+                return res.status(400).send({error: 'Coach not found'})
+            }
+
+            if(!team){
+                return res.status(400).send({error: 'Team not found'})
+            }
+
+            if(coach.teamId == teamId){
+                return res.status(400).send({error: 'Coach already in this team'})
+            }
+
+            let alreadyShowInterest = 0
+
+            coach.interestTeams.map(interest => {
+                if(interest.teamId == team._id){
+                    alreadyShowInterest += 1
+                }
+            })
+
+            if(alreadyShowInterest > 0){
+                return res.status(400).send({error: 'Coach already show interest in this team'})
+            }
+
+            coach.interestTeams.push({teamId})
+            team.interestedCoaches.push({coachId: coach._id})
+
+            await coach.save()
+            await team.save()
+
+            return res.status(200).send(coach.interestTeams)
+
+        } catch (err) {
+            return res.status(400).send({error: 'Error: '+err})
+        }
+    },
+
+    async removeInterest(req:Request, res:Response){
+
+        const {teamId} = req.body
+
+        const {authorization} = req.headers
+
+        const tokenSplited = authorization.split(' ')
+
+        const token = tokenSplited[1]
+
+        const data: data = jwt_decode(token)
+
+        const {id} = data
+
+        try {
+            
+            const coach = await Coach.findOne({userId: id})
+
+            const team = await Team.findOne({ _id : teamId})
+
+            if(!coach){
+                return res.status(400).send({error: 'Coach not found'})
+            }
+
+            if(!team){
+                return res.status(400).send({error: 'Team not found'})
+            }
+
+
+            let interestIndex
+            let interestIndex2 
+
+            coach.interestTeams.map((interest, index) => {
+                if(interest.teamId == teamId){
+                    interestIndex = index
+                }
+            })
+
+            team.interestedCoaches.map((interest, index) => {
+                if(interest.coachId == coach._id){
+                    interestIndex2 = index
+                }
+            })
+
+            let removed
+
+            if(interestIndex >= 0){
+                removed = coach.interestTeams.splice(interestIndex, 1)
+                team.interestedCoaches.splice(interestIndex2, 1)
+            }else{
+                return res.status(400).send({error: 'Coach has not interest in this team'})
+            }
+
+            await coach.save()
+            await team.save()
+
+            return res.status(200).send({message: 'Interest removed: '+removed})
+
+        } catch (err) {
+            return res.status(400).send({error: 'Error: '+err})
+        }
 
     },
 
-    async getAll(req: Request, res: Response){
+    async leaveTeam(req:Request, res:Response){
+        const {authorization} = req.headers
 
-    },
+        const tokenSplited = authorization.split(' ')
 
-    async changeTeam(req: Request, res: Response){
+        const token = tokenSplited[1]
 
+        const data: data = jwt_decode(token)
+
+        const {id} = data
+
+        try {
+
+            const coach = await Coach.findOne({userId: id})
+
+            if(!coach) {
+                return res.status(400).send({error: 'Coach id is invalid'})
+            }
+
+            if(coach.teamId === undefined){
+                return res.status(400).send({error: 'This coach dont have a team'})
+            }
+
+            const team = await Team.findOne({_id: coach.teamId})
+
+            if(!team){
+                return res.status(400).send({error: 'Team id is invalid'})
+            }
+
+            team.coachId = undefined
+
+            coach.teamId = undefined
+
+            const date = new Date()
+
+            const career = {
+                teamId: coach.activeContract.teamId,
+                initialDate: coach.activeContract.initialDate,
+                finalDate: date
+            }
+
+            coach.career.push(career)
+
+            coach.activeContract = undefined
+
+            await coach.save()
+            await team.save()
+
+            return res.status(200).send({message: 'Coach leave of the team'})
+            
+        } catch (err) {
+            return res.status(400).send({error: 'Error: '+err})
+        }
     }
 
 }

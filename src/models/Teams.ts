@@ -1,26 +1,21 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-const TendersSchema = new mongoose.Schema({
+const TeamTendersSchema = new mongoose.Schema({
+    tendersId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Tender',
+    },
     method: {
-        type: String,
-    },
-    coachId: {
-        type: Number,
-        required: true
-    },
-    date: {
-        type: Date(),
-    },
-    durationInMonths: {
-        type: Number,
-    },
-    salary: {
-        type: Number,
-    },
-    contractPlan: {
-        type:String,
+        type: String
     }
+  })
+
+const InterestCoaches = new mongoose.Schema({
+    coachId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Coach',
+    } 
 })
 
 const TeamSchema = new mongoose.Schema({
@@ -33,27 +28,46 @@ const TeamSchema = new mongoose.Schema({
         require: true
     },
     countryId: {
-        type: Number,
+        type: Schema.Types.ObjectId,
+        ref: 'Country',
         require: true
     },
     regionId: {
-        type: Number,
-        require: true
+        type: Schema.Types.ObjectId,
+        ref: 'Region',
+        required: true
     },
     regionalCompetitionId: {
-        type: Number
+        type: Schema.Types.ObjectId,
+        ref: 'EliminatoryCompetition',
     },
     nacionalCompetitionId: {
+        type: Schema.Types.ObjectId,
+        ref: 'RunningPointsCompetition',
+        required: true
+    },
+    coachId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Coach'
+    },
+    presidentId: {
+        type: Schema.Types.ObjectId,
+        ref: 'President'
+    },
+    salaryAmount:{
         type: Number,
         require: true
     },
-    coachId: {
-        type: Number
+    transferFunds: {
+        type: Number,
+        require: true
     },
-    presidentId: {
-        type: Number
-    },
-    tenders: [TendersSchema]
+    players: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Player'
+    }],
+    tenders: [TeamTendersSchema],
+    interestedCoaches: [InterestCoaches]
 })
 
 const Team = mongoose.model('Team', TeamSchema)

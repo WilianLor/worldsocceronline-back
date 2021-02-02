@@ -1,9 +1,13 @@
 const User = require('../models/Users')
+const Coach = require('../models/Coaches')
+const President = require('../models/Presidents')
+const Country = require('../models/Countries')
 import {Request, Response} from 'express'
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
 const mailer = require('../modules/mailer')
+const jwt_decode = require('jwt-decode')
 
 const authConfig = require('../config/auth.json')
 
@@ -13,45 +17,112 @@ function generateToken(params = {}) {
     })
 }
 
+interface data {
+    id: string,
+}
+
 export default {
 
     async create(req:Request, res:Response){
         const {email, username} = req.body
 
+        if(req.body.admin === true){
+            return res.status(200).send({error: 'You is a bad Hacker! kkkkkkk'})
+        }
+
         try {
             if(await User.findOne({ email })){
-                return res.status(400).send({ error: 'User already exists'})
+                return res.status(200).send({ error: 'Email ja está em uso.'})
             }
 
             if(await User.findOne({ username })){
-                return res.status(400).send({ error: 'User already exists'})
+                return res.status(200).send({ error: 'Nome ja está em uso.' })
             }
 
             const user = await User.create(req.body)
 
             user.password = undefined
 
-            return res.send({ user, token: generateToken({ id: user.id }) })
+            const data = {
+                token: generateToken({ id: user.id }),
+                profession: "",
+                user: {
+                    userId: user._id,
+                    professionId: "",
+                    username: user.username,
+                    countryId: user.countryId,
+                    teamId: "",
+                    admin: user.admin,
+                    passwordVersion: user.passwordVersion
+                }
+            } 
+    
+            return res.status(201).send({ data })
+
         } catch (err) {
-            return res.status(400).send({ error: 'Registration failed' + err})
+            return res.status(400).send({ error: 'Falha! Tente novamente.' + err})
         }
     },
 
     async login(req:Request, res:Response){
-        const { username, password } = req.body
+        const { email, password } = req.body
 
-        const user = await User.findOne({ username }).select('+password')
+        const user = await User.findOne({ email }).select('+password')
         if(!user){
-            return res.status(400).send({ error: 'User not found' })
+            return res.status(200).send({ error: 'Email não encontrado.' })
         }
 
         if(!await bcrypt.compare(password, user.password)){
-            return res.status(400).send({ error: 'Invalid password' })
+            return res.status(200).send({ error: 'Senha inválida' })
+        }
+
+        let professionId = ""
+        let profession = ""
+        let teamId = ""
+
+        if(user.profession) {
+            if(user.profession === "Coach") {
+
+                const coach = await Coach.findOne({ userId: user._id })
+
+                professionId = coach._id
+                profession = "Coach"
+
+                if(coach.teamId) {
+                    teamId = coach.teamId
+                }
+
+            } else if(user.profession === "President") {
+
+                const president = await President.findOne({ userId: user._id })
+
+                professionId = president._id
+                profession = "President"
+
+                if(president.teamId) {
+                    teamId = president.teamId
+                }
+
+            }
         }
 
         user.password = undefined
 
-        res.send({ user, token: generateToken({ id: user.id, profession: user.profession}) })
+        const data = {
+            token: generateToken({ id: user.id, profession: user.profession }),
+            profession,
+            user: {
+                userId: user._id,
+                professionId,
+                username: user.username,
+                countryId: user.countryId,
+                teamId,
+                admin: user.admin,
+                passwordVersion: user.passwordVersion
+            }
+        } 
+
+        return res.status(200).send({ data })
     },
 
     async forgotPassword(req:Request, res:Response) {
@@ -118,11 +189,85 @@ export default {
 
             user.password = password
 
+            user.passwordVersion = Math.floor(Math.random() * 1000)
+
             await user.save()
             
             return res.status(200).send({ message: 'Password has been updated' })
 
-        } catch (error) {
+        } catch (err) {
+            res.status(400).send({error: 'Cannot reset password, try again'+err})
+        }
+    },
+
+    async validateUser(req:Request, res:Response) {
+        const {authorization} = req.headers
+
+        const tokenSplited = authorization.split(' ') 
+
+        const token = tokenSplited[1]
+
+        const data: data = jwt_decode(token)
+
+        const {id} = data
+
+        const user = await User.findOne({ _id: id })
+
+        try {
+
+            let data = {
+                profession: "",
+                teamId: "",
+                passwordVersion: user.passwordVersion
+            }
+
+            if(!user){
+                return res.status(400).send({error: 'Usuário não encontrado'})
+            }
+
+            if(!user.profession){
+                return res.status(200).send({data})
+            }
+
+            if(user.profession === "Coach"){
+
+                const coach = await Coach.findOne({userId: id})
+
+                if(!coach){
+                    return res.status(200).send({data})
+                }
+
+                data.profession = "Coach"
+
+                if(!coach.teamId){
+                    return res.status(200).send({data})
+                }
+
+                data.teamId = coach.teamId
+
+                return res.status(200).send({data})
+
+            } else {
+
+                const president = await President.findOne({userId: id})
+
+                if(!president){
+                    return res.status(200).send({data})
+                }
+
+                data.profession = "President"
+
+                if(!president.teamId){
+                    return res.status(200).send({data})
+                }
+
+                data.teamId = president.teamId
+
+                return res.status(200).send({data})
+
+            }
+            
+        } catch (err) {
             res.status(400).send({error: 'Cannot reset password, try again'})
         }
     }
