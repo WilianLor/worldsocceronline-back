@@ -1,13 +1,18 @@
 const Coach = require('../models/Coaches')
+const President = require('../models/Presidents')
 const User = require('../models/Users')
 const Team = require('../models/Teams')
-const Tender = require('../models/Tenders')
 import {Request, Response} from 'express'
 const jwt = require('jsonwebtoken')
 import jwt_decode from 'jwt-decode'
 
 interface data {
     id: string,
+}
+
+interface interest {
+    _id: string,
+    teamId: string
 }
 
 const authConfig = require('../config/auth.json')
@@ -43,6 +48,7 @@ export default {
             const coachData = {
                 username: user.username,
                 userId: id,
+                countryId: user.countryId,
             }
 
             const coach = await Coach.create(coachData)
@@ -68,8 +74,77 @@ export default {
         }
     },
 
-    async getCoach(req: Request, res: Response){
+    async getCoaches(req: Request, res: Response) {
+
+        const {coachName, onlyInterested, countryId} = req.params
+
+        const {authorization} = req.headers
+
+        const tokenSplited = authorization.split(' ') 
+
+        const token = tokenSplited[1]
+
+        const data: data = jwt_decode(token)
+
+        const {id} = data
+
         try {
+
+            let coaches = []
+
+            const president = await President.findOne({ userId: id })
+
+            if(!president || !president.teamId) {
+                return res.status(400).send({error: 'User not found.'})
+            }
+
+            if(countryId != 'null') {
+
+                coaches = await Coach.find({countryId: countryId}).populate(['countryId', 'teamId'])
+
+            } else {
+
+                coaches = await Coach.find({}).populate(['countryId', 'teamId'])
+            }
+
+            let filtredCoaches = []
+
+            if(onlyInterested != 'false') {     
+                coaches.map(coach => {
+                    coach.interestTeams.map((interest: interest) => {
+                        if(JSON.stringify(interest.teamId) === JSON.stringify(president.teamId)) {
+                            filtredCoaches.push(coach)
+                        }
+                    })
+                })
+
+            } else{
+                filtredCoaches = coaches
+            }
+
+            let finalCoaches = []
+
+            if(coachName != 'null') {
+                filtredCoaches.map(coach => {
+                    if(coach.username.toLowerCase().indexOf(coachName.toLowerCase()) >= 0) {
+                        finalCoaches.push(coach)
+                    }
+                })
+            }else {
+                finalCoaches = filtredCoaches
+            }
+
+            console.log(finalCoaches)
+
+            return res.status(200).send(finalCoaches)
+            
+        } catch (err) {
+            return res.status(400).send({error: 'Operation failed'+ err})
+        }
+    },
+
+    async getCoach(req: Request, res: Response){
+        
             const {authorization} = req.headers
 
             const tokenSplited = authorization.split(' ') 
@@ -79,6 +154,8 @@ export default {
             const data: data = jwt_decode(token)
 
             const {id} = data
+
+            try {
 
             const coach = await Coach.findOne({ userId: id })
 
@@ -117,15 +194,15 @@ export default {
                 return res.status(400).send({error: 'Team not found'})
             }
 
-            if(coach.teamId == teamId){
+            if(coach.teamId === teamId){
                 return res.status(400).send({error: 'Coach already in this team'})
             }
 
             let alreadyShowInterest = 0
 
             coach.interestTeams.map(interest => {
-                if(interest.teamId == team._id){
-                    alreadyShowInterest += 1
+                if(interest.teamId === team._id){
+                    alreadyShowInterest = alreadyShowInterest + 1
                 }
             })
 

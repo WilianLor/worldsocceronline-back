@@ -38,6 +38,11 @@ const PresidentSchema = new mongoose.Schema({
       type: Schema.Types.ObjectId,
       ref: 'Team',
     },
+    countryId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: 'Country',
+    },
     activeMandate: ActiveMandateSchema,
     career: [
         CareerSchema,

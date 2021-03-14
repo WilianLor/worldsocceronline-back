@@ -167,6 +167,7 @@ export default {
             presidentName: "", 
             coachName: "",
             players: [], 
+            interestedCoaches: [],
             nacionalCompetition: {
                 _id: "", 
                 name: "", 
@@ -194,8 +195,6 @@ export default {
             teamData._id = team._id
             teamData.name = team.name
             teamData.pictureUrl = team.pictureUrl
-            teamData.presidentName = team.presidentId.username
-            teamData.coachName = team.coachId.username
             teamData.players = team.players
             teamData.nacionalCompetition._id = team.nacionalCompetitionId._id
             teamData.nacionalCompetition.name = team.nacionalCompetitionId.name
@@ -203,6 +202,16 @@ export default {
             teamData.regionalCompetition._id = team.regionalCompetitionId._id
             teamData.regionalCompetition.name = team.regionalCompetitionId.name
             teamData.regionalCompetition.pictureUrl = team.regionalCompetitionId.pictureUrl
+            teamData.interestedCoaches = team.interestedCoaches
+
+            if(team.presidentId){
+                teamData.presidentName = team.presidentId.username
+            }
+
+            if(team.coachId){
+                teamData.coachName = team.coachId.username
+            }
+
 
             return res.status(200).send({teamData})
 

@@ -61,6 +61,11 @@ const CoachSchema = new mongoose.Schema({
     type: Schema.Types.ObjectId,
     ref: 'Team',
   },
+  countryId: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: 'Country',
+  },
   activeContract: ActiveContractSchema,
   career: [
     CareerSchema,

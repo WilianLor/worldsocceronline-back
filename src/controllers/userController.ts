@@ -1,7 +1,6 @@
 const User = require('../models/Users')
 const Coach = require('../models/Coaches')
 const President = require('../models/Presidents')
-const Country = require('../models/Countries')
 import {Request, Response} from 'express'
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
@@ -83,7 +82,9 @@ export default {
         if(user.profession) {
             if(user.profession === "Coach") {
 
+
                 const coach = await Coach.findOne({ userId: user._id })
+
 
                 professionId = coach._id
                 profession = "Coach"
@@ -92,7 +93,7 @@ export default {
                     teamId = coach.teamId
                 }
 
-            } else if(user.profession === "President") {
+            } else if(user.profession == "President") {
 
                 const president = await President.findOne({ userId: user._id })
 

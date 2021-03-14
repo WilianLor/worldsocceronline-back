@@ -42,6 +42,7 @@ export default {
             const presidentData = {
                 username: user.username,
                 userId: id,
+                countryId: user.countryId,
             }
 
             const president = await President.create(presidentData)
@@ -115,6 +116,8 @@ export default {
 
             const team = await Team.findOne({ _id: TeamId })
 
+            console.log(president, team)
+
             if(!president){
                 return res.status(400).send({error: 'President not found'})
             }
@@ -182,10 +185,6 @@ export default {
 
             if(team.presidentId === undefined){
                 return res.status(400).send({error: 'This team not has a president'})
-            }
-
-            if(team.presidentId != president._id){
-                return res.status(400).send({error: 'This president is not on this team'})
             }
 
             const {teamId, initialDate} = president.activeMandate

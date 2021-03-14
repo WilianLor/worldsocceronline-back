@@ -37,6 +37,7 @@ const UserSchema = new mongoose.Schema({
     countryId: {
         type: Schema.Types.ObjectId,
         ref: 'Country',
+        required: true,
     },
     passwordVersion: {
         type: Number,

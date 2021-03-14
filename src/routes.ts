@@ -49,6 +49,7 @@ routes.post('/reset-password', UserController.resetPassword)
 routes.get('/validate', UserController.validateUser)
 
 routes.post('/create/coach', authMiddleware ,CoachController.create)
+routes.get('/coaches/:onlyInterested/:countryId/:coachName', authMiddleware ,CoachController.getCoaches)
 routes.get('/show/userCoach', authMiddleware ,CoachController.getCoach)
 
 routes.post('/create/president', authMiddleware ,PresidentController.create)
