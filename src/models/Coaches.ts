@@ -4,7 +4,7 @@ const Schema = mongoose.Schema
 const CoachTendersSchema = new mongoose.Schema({
   tendersId: {
     type: Schema.Types.ObjectId,
-    ref: 'Tender',
+    ref: 'Tenders',
   },
   method: {
     type: String
@@ -63,8 +63,11 @@ const CoachSchema = new mongoose.Schema({
   },
   countryId: {
     type: Schema.Types.ObjectId,
-    required: true,
     ref: 'Country',
+    require: true
+  },  
+  description: {
+    type: String,
   },
   activeContract: ActiveContractSchema,
   career: [

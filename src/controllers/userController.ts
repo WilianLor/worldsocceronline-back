@@ -271,6 +271,95 @@ export default {
         } catch (err) {
             res.status(400).send({error: 'Cannot reset password, try again'})
         }
+    },
+
+    async getUserProfile(req:Request, res:Response) {
+        const {authorization} = req.headers
+        const {professionId} =req.params
+
+        const tokenSplited = authorization.split(' ') 
+
+        const token = tokenSplited[1]
+
+        const data: data = jwt_decode(token)
+
+        const {id} = data
+
+        try {
+
+        const user = await User.findOne({ _id: id })
+
+        if(!user) {
+            return res.status(400).send({error: 'User not found.'})
+        }
+
+        const professionUser = await User.findOne({professionId: professionId})
+
+        if(!professionUser) {
+            return res.status(400).send({error: 'Profession user not founded.'})
+        }
+
+        console.log(user.profession)
+
+        if(user.profession === 'Coach'){
+
+            const coach = await Coach.findOne({_id: professionId}).populate(['countryId', 'activeContract.teamId','career.teamId'])
+
+            if(!coach) {
+                return res.status(400).send({error: 'Coach not found.'})
+            }
+
+            const coachData = {
+                userId: coach.userId,
+                username: coach.username,
+                description: coach.description,
+                countryImage: coach.countryId.pictureUrl,
+                activeContract: coach.activeContract ? coach.activeContract : {
+                    teamId: {
+                        _id: '',
+                        name: '',
+                        pictureUrl: '',
+                    },
+                    initialDate: '',
+                    salary: 0,
+                    monthsDuration: 0,
+                },
+                career: coach.career
+            }
+
+            return res.status(200).send({president: coachData})
+
+        } else if (user.profession === 'President') {
+            const president = await President.findOne({_id: professionId}).populate(['countryId', 'activeMandate.teamId','career.teamId'])
+
+            if(!president) {
+                return res.status(400).send({error: 'President not found.'})
+            }
+
+            const presidentData = {
+                userId: president.userId,
+                username: president.username,
+                description: president.description,
+                countryImage: president.countryId.pictureUrl,
+                activeMandate: president.activeMandate ? president.activeMandate : {
+                    teamId: {
+                        _id: '',
+                        name: '',
+                        pictureUrl: '',
+                    },
+                    initialDate: '',
+                },
+                career: president.career
+            }
+
+            return res.status(200).send({president: presidentData})
+        } else {
+            return res.status(400).send({error: 'This user dont`t have profesison'})
+        }
+
+        } catch (err) {
+            return res.status(400).send({ error: 'Operation failed' + err})
+        }
     }
 
 }

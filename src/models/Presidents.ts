@@ -43,6 +43,9 @@ const PresidentSchema = new mongoose.Schema({
       required: true,
       ref: 'Country',
     },
+    description: {
+      type: String,
+    },
     activeMandate: ActiveMandateSchema,
     career: [
         CareerSchema,

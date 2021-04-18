@@ -74,6 +74,42 @@ export default {
         }
     },
 
+    async editDescription(req:Request, res:Response){
+        const {authorization} = req.headers
+
+        const {description} = req.body
+
+        const tokenSplited = authorization.split(' ') 
+
+        const token = tokenSplited[1]
+
+        const data: data = jwt_decode(token)
+
+        const {id} = data
+
+        try {
+            const coach = await Coach.findOne({ userId: id })
+
+            if(!coach) {
+                return res.status(400).send({error: 'President not found'})
+            }
+            
+            if(description.length > 200) {
+                return res.status(400).send({error: 'Limite de caracteres excedido.'})
+            }
+
+            coach.description = description
+
+            await coach.save()
+
+            return res.status(200).send({message: 'Descrição atualizada.'})
+
+        } catch (err) {
+            return res.status(400).send({error: 'Erro: '+err})
+        }
+
+    },
+
     async getCoaches(req: Request, res: Response) {
 
         const {coachName, onlyInterested, countryId} = req.params
@@ -134,9 +170,22 @@ export default {
                 finalCoaches = filtredCoaches
             }
 
-            console.log(finalCoaches)
+            const data = []
 
-            return res.status(200).send(finalCoaches)
+            finalCoaches.map(coach => {
+
+                let teamImage
+
+                if(coach.teamId){
+                    teamImage = coach.teamId.pictureUrl
+                }else {
+                    teamImage = ""
+                }
+
+                data.push({_id: coach._id, username: coach.username, countryImage: coach.countryId.pictureUrl, teamImage: teamImage})
+            })
+
+            return res.status(200).send(data)
             
         } catch (err) {
             return res.status(400).send({error: 'Operation failed'+ err})
@@ -146,6 +195,7 @@ export default {
     async getCoach(req: Request, res: Response){
         
             const {authorization} = req.headers
+            const {coachId} =req.params
 
             const tokenSplited = authorization.split(' ') 
 
@@ -157,9 +207,37 @@ export default {
 
             try {
 
-            const coach = await Coach.findOne({ userId: id })
+            const user = await User.findOne({ _id: id })
 
-            return res.status(201).send({ coach })
+            if(!user) {
+                return res.status(400).send({error: 'User not found.'})
+            }
+
+            const coach = await Coach.findOne({_id: coachId}).populate(['countryId', 'activeContract.teamId','career.teamId'])
+
+            if(!coach) {
+                return res.status(400).send({error: 'Coach not found.'})
+            }
+
+            const coachData = {
+                userId: coach.userId,
+                username: coach.username,
+                description: coach.description,
+                countryImage: coach.countryId.pictureUrl,
+                activeContract: coach.activeContract ? coach.activeContract : {
+                    teamId: {
+                        _id: '',
+                        name: '',
+                        pictureUrl: '',
+                    },
+                    initialDate: '',
+                    salary: 0,
+                    monthsDuration: 0,
+                },
+                career: coach.career
+            }
+
+            return res.status(200).send(coachData)
 
         } catch (err) {
             return res.status(400).send({ error: 'Operation failed' + err})

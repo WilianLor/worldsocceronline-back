@@ -8,6 +8,7 @@ import TeamController from './controllers/teamController'
 import TendersController from './controllers/tendersController'
 import PlayerController from './controllers/playerController'
 import teamController from './controllers/teamController'
+import tendersController from './controllers/tendersController'
 
 const authMiddleware = require('./middlewares/auth')
 
@@ -39,6 +40,7 @@ routes.post('/counteroffer/tenders/coach/:tenderId', authMiddleware, TendersCont
 routes.post('/action/tender/coach/:acceptOrCancel/:tenderId', authMiddleware, TendersController.coachAction)
 routes.post('/counteroffer/tenders/team/:tenderId', authMiddleware, TendersController.teamCounteroffer)
 routes.post('/action/tender/team/:acceptOrCancel/:tenderId', authMiddleware, TendersController.teamAction)
+routes.get('/getalltenders', authMiddleware , tendersController.getAllTenders)
 
 routes.post('/team/firecoach', authMiddleware, TeamController.fireCoach)
 routes.post('/coach/leaveteam', authMiddleware, CoachController.leaveTeam)
@@ -50,10 +52,13 @@ routes.get('/validate', UserController.validateUser)
 
 routes.post('/create/coach', authMiddleware ,CoachController.create)
 routes.get('/coaches/:onlyInterested/:countryId/:coachName', authMiddleware ,CoachController.getCoaches)
-routes.get('/show/userCoach', authMiddleware ,CoachController.getCoach)
+routes.post('/coach/editdescription', authMiddleware ,CoachController.editDescription)
+
+routes.get('/getprofile/:professionId', authMiddleware ,UserController.getUserProfile)
 
 routes.post('/create/president', authMiddleware ,PresidentController.create)
 routes.get('/show/userPresident', authMiddleware ,PresidentController.getPresident)
+routes.post('/president/editdescription', authMiddleware ,PresidentController.editDescription)
 
 routes.post('/jointeam/president', authMiddleware, PresidentController.joinTeam)
 routes.post('/leaveteam/president', authMiddleware, PresidentController.leaveTeam)

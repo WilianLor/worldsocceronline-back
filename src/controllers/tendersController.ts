@@ -2,6 +2,7 @@ const Tenders = require('../models/Tenders')
 const Coach = require('../models/Coaches')
 const Team = require('../models/Teams')
 const President = require('../models/Presidents')
+const User = require('../models/Users')
 
 import jwt_decode from 'jwt-decode'
 
@@ -116,17 +117,17 @@ export default {
             const tender = await Tenders.findOne({ _id: tenderId})
 
             if(!tender){
-                return res.status(400).send({error: 'Terder id is invalid'})
+                return res.status(202).send({error: 'Terder id is invalid'})
             }
 
             if(tender.sender === 'Coach'){
-                return res.status(400).send({error: 'Coach already send a counteroffer'})
+                return res.status(202).send({error: 'Coach already send a counteroffer'})
             }
 
             const coach = await Coach.findOne({ userId: id})
 
             if(!coach){
-                return res.status(400).send({error: 'Coach id is invalid'})
+                return res.status(202).send({error: 'Coach id is invalid'})
             }
 
             coach.tenders.map(tender => {
@@ -139,7 +140,7 @@ export default {
             const team = await Team.findOne({ _id: tender.teamId})
 
             if(!team){
-                return res.status(400).send({error: 'Team id is invalid'})
+                return res.status(202).send({error: 'Team id is invalid'})
             }
 
             team.tenders.map(tender => {
@@ -150,7 +151,7 @@ export default {
             })
 
             if(isTenderCoach === false || isTenderTeam === false){
-                return res.status(400).send({error: 'Not have a tender in comum with this team and this coach'})
+                return res.status(202).send({error: 'Not have a tender in comum with this team and this coach'})
             }
 
             tender.monthsDuration = monthsDuration
@@ -165,7 +166,7 @@ export default {
             return res.status(200).send(tender)
 
         } catch (err) {
-            return res.status(400).send({error: 'Error: '+err})
+            return res.status(202).send({error: 'Error: '+err})
         }
     },
 
@@ -196,23 +197,21 @@ export default {
             const president = await President.findOne({ userId: id})
 
             if(!president){
-                return res.status(400).send({error: 'Presidente inválido'})
+                return res.status(202).send({error: 'Presidente inválido'})
             }
 
             if(!tender){
-                return res.status(400).send({error: 'Terder id is invalid'})
+                return res.status(202).send({error: 'Terder id is invalid'})
             }
 
             if(tender.sender === 'Team'){
-                return res.status(400).send({error: 'Team already send a counteroffer'})
+                return res.status(202).send({error: 'Team already send a counteroffer'})
             }
 
             const coach = await Coach.findOne({ _id: tender.coachId})
 
-            console.log('coach', coach)
-
             if(!coach){
-                return res.status(400).send({error: 'Coach id is invalid'})
+                return res.status(202).send({error: 'Coach id is invalid'})
             }
 
             coach.tenders.map(tender => {
@@ -226,11 +225,11 @@ export default {
 
 
             if(!team){
-                return res.status(400).send({error: 'Team id is invalid'})
+                return res.status(202).send({error: 'Team id is invalid'})
             }
 
-            if(team.presidentId !=  president._id){
-                return res.status(400).send({error: 'This president dont camand this team'})
+            if(team.presidentId !=  president._id.toString()){
+                return res.status(202).send({error: 'This president dont camand this team'})
             }
 
             team.tenders.map(tender => {
@@ -241,7 +240,7 @@ export default {
             })
 
             if(isTenderCoach === false || isTenderTeam === false){
-                return res.status(400).send({error: 'Not have a tender in comum with this team and this coach'})
+                return res.status(202).send({error: 'Not have a tender in comum with this team and this coach'})
             }
 
             tender.monthsDuration = monthsDuration
@@ -256,7 +255,7 @@ export default {
             return res.status(200).send(tender)
 
         } catch (err) {
-            return res.status(400).send({error: 'Error: '+err})
+            return res.status(202).send({error: 'Error: '+err})
         }
     },
 
@@ -302,6 +301,10 @@ export default {
             }
 
            if(acceptOrCancel === 'accept'){
+
+                if(team.coachId != undefined){
+                    return res.status(202).send({error: 'Este time ainda possui um treinador.'})
+                }
 
                 if(tender.sender === 'Coach'){
                     return res.status(400).send({error: 'Coach cannot accept'})
@@ -431,6 +434,10 @@ export default {
 
            if(acceptOrCancel === 'accept'){
 
+                if(team.coachId != undefined){
+                    return res.status(202).send({error: 'O seu time ainda possui uma treinador.'})
+                }
+
                 if(tender.sender === 'Team'){
                     return res.status(400).send({error: 'Coach cannot accept'})
                 }
@@ -502,5 +509,59 @@ export default {
         } catch (err) {
             return res.status(400).send({error: 'Error: '+err})
         }
+    },
+
+    async getAllTenders(req: Request, res: Response) {
+
+        const {authorization} = req.headers
+
+        const tokenSplited = authorization.split(' ') 
+
+        const token = tokenSplited[1]
+
+        const data: data = jwt_decode(token)
+
+        const {id} = data
+
+        try {
+
+            const user = await User.findOne({_id: id})
+
+            if(!user) {
+                return res.status(404).send({error: 'User not found.'})
+            }
+
+            if(user.profession === 'President') {
+
+                const president = await President.findOne({userId: id})
+
+                if(!president) {
+                    return res.status(404).send({error: 'President not found.'})
+                }
+
+                if(!president.teamId){
+                    return res.status(400).send({error: 'President not has a team.'})
+                }
+
+                const team = await Team.findOne({_id: president.teamId}).populate(['tenders.tendersId', {path : 'tenders.tendersId', populate : {path : 'coachId'}}])
+
+                return res.status(200).send(team.tenders)
+
+            } else {
+
+                const coach = await Coach.findOne({userId: id}).populate(['tenders.tendersId', {path : 'tenders.tendersId', populate : {path : 'coachId'}}, {path : 'tenders.tendersId', populate : {path : 'teamId'}}])
+
+                if(!coach) {
+                    return res.status(404).send({error: 'Coach not found.'})
+                }
+
+                return res.status(200).send(coach.tenders)
+
+            }
+            
+        } catch (err) {
+            return res.status(400).send({error: 'Erro: '+err})
+        }
+
     }
 }

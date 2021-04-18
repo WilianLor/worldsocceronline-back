@@ -4,7 +4,7 @@ const Schema = mongoose.Schema
 const TeamTendersSchema = new mongoose.Schema({
     tendersId: {
         type: Schema.Types.ObjectId,
-        ref: 'Tender',
+        ref: 'Tenders',
     },
     method: {
         type: String
@@ -16,6 +16,21 @@ const InterestCoaches = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: 'Coach',
     } 
+})
+
+const FundsSchema = new mongoose.Schema({
+    total: {
+        type: Number,
+        required: true
+    },
+    percentageForTransfers: {
+        type: Number,
+        required: true
+    },
+    percentageForSalary: {
+        type: Number,
+        required: true
+    }
 })
 
 const TeamSchema = new mongoose.Schema({
@@ -54,14 +69,7 @@ const TeamSchema = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: 'President'
     },
-    salaryAmount:{
-        type: Number,
-        require: true
-    },
-    transferFunds: {
-        type: Number,
-        require: true
-    },
+    founds: FundsSchema,
     players: [{
         type: Schema.Types.ObjectId,
         ref: 'Player'

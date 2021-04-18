@@ -68,6 +68,42 @@ export default {
         }
     },
 
+    async editDescription(req:Request, res:Response) {
+        const {authorization} = req.headers
+
+        const {description} = req.body
+
+        const tokenSplited = authorization.split(' ') 
+
+        const token = tokenSplited[1]
+
+        const data: data = jwt_decode(token)
+
+        const {id} = data
+
+        try {
+            const president = await President.findOne({ userId: id })
+
+            if(!president) {
+                return res.status(400).send({error: 'President not found'})
+            }
+            
+            if(description.length > 200) {
+                return res.status(400).send({error: 'Max caracter limit esxeded.'})
+            }
+
+            president.description = description
+
+            await president.save()
+
+            return res.status(200).send({message: 'Descrição atualizada.'})
+
+        } catch (err) {
+            return res.status(400).send({error: 'Erro: '+err})
+        }
+
+    },
+
     async getPresident(req: Request, res: Response){
         try {
             const {authorization} = req.headers

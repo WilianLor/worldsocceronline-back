@@ -17,7 +17,7 @@ interface data {
 export default {
 
     async create(req:Request, res:Response){
-        const {name, pictureUrl, countryId, regionalCompetitionId, nacionalCompetitionId, salaryAmount, transferFunds} = req.body
+        const {name, pictureUrl, countryId, regionalCompetitionId, nacionalCompetitionId, total} = req.body
 
         try {
 
@@ -31,7 +31,7 @@ export default {
 
             const country = await Country.findOne({ _id: countryId })
 
-            const teamData = {name, countryId: country.id , regionId: country.regionId ,pictureUrl, regionalCompetitionId, nacionalCompetitionId, salaryAmount, transferFunds}
+            const teamData = {name, countryId: country.id , regionId: country.regionId ,pictureUrl, regionalCompetitionId, nacionalCompetitionId, founds: {total: total, percentageForTransfers: 50, percentageForSalary: 50}}
 
             const team = await Team.create(teamData)
 
@@ -99,7 +99,7 @@ export default {
                 return res.status(400).send({error: 'This team not have a coach to fire'})
             }
 
-            const coach = await Coach.findOne({userId: team.coachId})
+            const coach = await Coach.findOne({_id: team.coachId})
 
             if(!coach){
                 return res.status(400).send({error: 'Coach id is invalid'})
