@@ -49,6 +49,7 @@ export default {
                 username: user.username,
                 userId: id,
                 countryId: user.countryId,
+                cash: 0
             }
 
             const coach = await Coach.create(coachData)
@@ -224,6 +225,7 @@ export default {
                 username: coach.username,
                 description: coach.description,
                 countryImage: coach.countryId.pictureUrl,
+                cash: coach.cash,
                 activeContract: coach.activeContract ? coach.activeContract : {
                     teamId: {
                         _id: '',
@@ -233,6 +235,7 @@ export default {
                     initialDate: '',
                     salary: 0,
                     monthsDuration: 0,
+                    terminationFine: undefined,
                 },
                 career: coach.career
             }
@@ -392,6 +395,18 @@ export default {
 
             if(!team){
                 return res.status(400).send({error: 'Team id is invalid'})
+            }
+
+            if(coach.activeContract.terminationFine) {
+
+                if(coach.activeContract.terminationFine > coach.cash){
+                    return res.status(400).send({error: 'You dont have money to pay your termination fine.'})
+                }
+
+                coach.cash = coach.cash - coach.activeContract.terminationFine
+
+                await coach.save()
+
             }
 
             team.coachId = undefined

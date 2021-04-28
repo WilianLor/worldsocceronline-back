@@ -293,15 +293,19 @@ export default {
             return res.status(400).send({error: 'User not found.'})
         }
 
-        const professionUser = await User.findOne({professionId: professionId})
+        let unknownProfession = await Coach.findOne({_id: professionId})
+        let profession = 'Coach'
 
-        if(!professionUser) {
+        if(!unknownProfession) {
+            unknownProfession = await President.findOne({_id: professionId})
+            profession = 'President'
+        }
+
+        if(!unknownProfession) {
             return res.status(400).send({error: 'Profession user not founded.'})
         }
 
-        console.log(user.profession)
-
-        if(user.profession === 'Coach'){
+        if(profession === 'Coach'){
 
             const coach = await Coach.findOne({_id: professionId}).populate(['countryId', 'activeContract.teamId','career.teamId'])
 
@@ -310,6 +314,7 @@ export default {
             }
 
             const coachData = {
+                profession,
                 userId: coach.userId,
                 username: coach.username,
                 description: coach.description,
@@ -327,9 +332,9 @@ export default {
                 career: coach.career
             }
 
-            return res.status(200).send({president: coachData})
+            return res.status(200).send(coachData)
 
-        } else if (user.profession === 'President') {
+        } else if (profession === 'President') {
             const president = await President.findOne({_id: professionId}).populate(['countryId', 'activeMandate.teamId','career.teamId'])
 
             if(!president) {
@@ -337,11 +342,12 @@ export default {
             }
 
             const presidentData = {
+                profession,
                 userId: president.userId,
                 username: president.username,
                 description: president.description,
                 countryImage: president.countryId.pictureUrl,
-                activeMandate: president.activeMandate ? president.activeMandate : {
+                activeContract: president.activeMandate ? president.activeMandate : {
                     teamId: {
                         _id: '',
                         name: '',
@@ -352,7 +358,7 @@ export default {
                 career: president.career
             }
 
-            return res.status(200).send({president: presidentData})
+            return res.status(200).send(presidentData)
         } else {
             return res.status(400).send({error: 'This user dont`t have profesison'})
         }

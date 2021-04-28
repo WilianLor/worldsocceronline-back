@@ -16,7 +16,7 @@ export default {
 
     async teamSend(req:Request, res:Response){
 
-        const {coachId, monthsDuration, salary, contractPlan} = req.body
+        const {coachId, monthsDuration, salary, contractPlan, termiantionFine} = req.body
 
         const {authorization} = req.headers
 
@@ -50,6 +50,10 @@ export default {
                 return res.status(400).send({error: 'Coach already in this team'})
             }
 
+            if(!coach.activeContract.terminationFine) {
+                return res.status(400).send({error: 'This coach dont have a termination fine.'})
+            }
+
             const teamId = president.teamId
 
             if(await Tenders.findOne({ teamId: teamId, coachId: coach._id })){
@@ -71,6 +75,7 @@ export default {
                 date,
                 monthsDuration,
                 salary,
+                termiantionFine,
                 contractPlan
             }
 
@@ -310,6 +315,16 @@ export default {
                     return res.status(400).send({error: 'Coach cannot accept'})
                 }
 
+                if(coach.activeContract.termiantionFine){
+
+                    if(team.funds.total < coach.activeContract.termiantionFine){
+                        return res.status(400).send({error: 'Team dont have money to pay the coach termination fine.'})
+                    }
+
+                    team.funds.total = team.funds.total - coach.activeContract.terminationFine
+
+                }
+
                 team.coachId = coach._id
 
                 team.tenders.map((tender, index) => {
@@ -328,7 +343,8 @@ export default {
                     teamId: team.id,
                     initialDate: date,
                     salary: tender.salary,
-                    monthsDuration: tender.monthsDuration
+                    monthsDuration: tender.monthsDuration,
+                    termiantionFine: tender.termiantionFine
                 }
 
                 coach.activeContract = activeContract

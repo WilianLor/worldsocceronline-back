@@ -17,7 +17,7 @@ interface data {
 export default {
 
     async create(req:Request, res:Response){
-        const {name, pictureUrl, countryId, regionalCompetitionId, nacionalCompetitionId, total} = req.body
+        const {name, pictureUrl, countryId, regionalCompetitionId, nacionalCompetitionId, funds} = req.body
 
         try {
 
@@ -31,7 +31,7 @@ export default {
 
             const country = await Country.findOne({ _id: countryId })
 
-            const teamData = {name, countryId: country.id , regionId: country.regionId ,pictureUrl, regionalCompetitionId, nacionalCompetitionId, founds: {total: total, percentageForTransfers: 50, percentageForSalary: 50}}
+            const teamData = {name, countryId: country.id , regionId: country.regionId ,pictureUrl, regionalCompetitionId, nacionalCompetitionId, founds: {total: funds, payroll: 0}}
 
             const team = await Team.create(teamData)
 

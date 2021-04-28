@@ -28,6 +28,9 @@ const TendersSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    terminationFine: {
+        type: Number,
+    },
     contractPlan: {
         type:String,
         required: true

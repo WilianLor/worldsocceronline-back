@@ -23,14 +23,10 @@ const FundsSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    percentageForTransfers: {
+    payroll: {
         type: Number,
         required: true
     },
-    percentageForSalary: {
-        type: Number,
-        required: true
-    }
 })
 
 const TeamSchema = new mongoose.Schema({
@@ -69,7 +65,7 @@ const TeamSchema = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: 'President'
     },
-    founds: FundsSchema,
+    funds: FundsSchema,
     players: [{
         type: Schema.Types.ObjectId,
         ref: 'Player'

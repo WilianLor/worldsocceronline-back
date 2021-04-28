@@ -11,6 +11,25 @@ const CoachTendersSchema = new mongoose.Schema({
   }
 })
 
+const statisticsSchema = new mongoose.Schema({
+  games: {
+    type: Number,
+    default: 0,
+  },
+  wins: {
+    type: Number,
+    default: 0,
+  },
+  draws: {
+    type: Number,
+    default: 0,
+  },
+  losts: {
+    type: Number,
+    default: 0,
+  }
+})
+
 const ActiveContractSchema = new mongoose.Schema({
   teamId: {
     type: Schema.Types.ObjectId,
@@ -24,7 +43,11 @@ const ActiveContractSchema = new mongoose.Schema({
   },
   monthsDuration: {
     type: Number,
-  }
+  },
+  terminationFine: {
+    type: Number
+  },
+  teamStatistics: statisticsSchema,
 })
 
 const CareerSchema = new mongoose.Schema({
@@ -69,6 +92,11 @@ const CoachSchema = new mongoose.Schema({
   description: {
     type: String,
   },
+  cash: {
+    type: Number,
+    required: true
+  },
+  statistics: statisticsSchema,
   activeContract: ActiveContractSchema,
   career: [
     CareerSchema,
