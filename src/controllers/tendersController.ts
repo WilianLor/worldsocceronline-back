@@ -50,8 +50,10 @@ export default {
                 return res.status(400).send({error: 'Coach already in this team'})
             }
 
-            if(!coach.activeContract.terminationFine) {
-                return res.status(400).send({error: 'This coach dont have a termination fine.'})
+            if(coach.activeContract) {
+                if(!coach.activeContract.terminationFine) {
+                    return res.status(400).send({error: 'This coach dont have a termination fine.'})
+                }
             }
 
             const teamId = president.teamId
@@ -101,7 +103,7 @@ export default {
         
         const {tenderId} = req.params
 
-        const { monthsDuration, salary, contractPlan} = req.body
+        const { monthsDuration, salary, contractPlan, terminationFine} = req.body
 
         const {authorization} = req.headers
 
@@ -162,6 +164,7 @@ export default {
             tender.monthsDuration = monthsDuration
             tender.salary = salary
             tender.contractPlan = contractPlan
+            tender.terminationFine = terminationFine
             tender.sender = 'Coach'
 
             await coach.save()
@@ -179,7 +182,7 @@ export default {
 
         const {tenderId} = req.params
 
-        const { monthsDuration, salary, contractPlan} = req.body
+        const { monthsDuration, salary, contractPlan, terminationFine} = req.body
 
         const {authorization} = req.headers
 
@@ -251,6 +254,7 @@ export default {
             tender.monthsDuration = monthsDuration
             tender.salary = salary
             tender.contractPlan = contractPlan
+            tender.terminationFine = terminationFine
             tender.sender = 'Team'
 
             await coach.save()
@@ -315,15 +319,24 @@ export default {
                     return res.status(400).send({error: 'Coach cannot accept'})
                 }
 
-                if(coach.activeContract.termiantionFine){
+                if(coach.activeContract) {
 
-                    if(team.funds.total < coach.activeContract.termiantionFine){
-                        return res.status(400).send({error: 'Team dont have money to pay the coach termination fine.'})
+                    const actualTeam = await Team.findOne({_id: coach.activeContract.teamId})
+
+                    actualTeam.teamId = undefined
+
+                    actualTeam.funds.payroll = actualTeam.funds.payroll - coach.activeContract.salary 
+
+                    if(coach.activeContract.termiantionFine){
+    
+                        team.funds.total = team.funds.total - coach.activeContract.terminationFine
+    
+                        actualTeam.funds.total = actualTeam.funds.total + coach.activeContract.terminationFine
+
                     }
-
-                    team.funds.total = team.funds.total - coach.activeContract.terminationFine
-
+                    
                 }
+
 
                 team.coachId = coach._id
 
@@ -456,6 +469,24 @@ export default {
 
                 if(tender.sender === 'Team'){
                     return res.status(400).send({error: 'Coach cannot accept'})
+                }
+
+                if(coach.activeContract) {
+
+                    const actualTeam = await Team.findOne({_id: coach.activeContract.teamId})
+
+                    actualTeam.teamId = undefined
+
+                    actualTeam.funds.payroll = actualTeam.funds.payroll - coach.activeContract.salary 
+
+                    if(coach.activeContract.termiantionFine){
+    
+                        team.funds.total = team.funds.total - coach.activeContract.terminationFine
+    
+                        actualTeam.funds.total = actualTeam.funds.total + coach.activeContract.terminationFine
+
+                    }
+                    
                 }
 
                 team.coachId = coach._id

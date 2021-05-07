@@ -31,7 +31,18 @@ export default {
 
             const country = await Country.findOne({ _id: countryId })
 
-            const teamData = {name, countryId: country.id , regionId: country.regionId ,pictureUrl, regionalCompetitionId, nacionalCompetitionId, founds: {total: funds, payroll: 0}}
+            const teamData = {
+                name, 
+                countryId: country.id , 
+                regionId: country.regionId ,
+                pictureUrl, 
+                regionalCompetitionId, 
+                nacionalCompetitionId, 
+                funds: {
+                        total: funds, 
+                        payroll: 0
+                    }
+                }
 
             const team = await Team.create(teamData)
 

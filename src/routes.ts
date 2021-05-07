@@ -16,7 +16,6 @@ const routes = Router()
 
 routes.post('/register', UserController.create)
 routes.post('/login', UserController.login)
-routes.get('/home', authMiddleware)
 
 routes.post('/create/region', RegionController.create)
 routes.get('/getregions', RegionController.getAll)

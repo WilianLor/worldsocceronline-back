@@ -82,9 +82,7 @@ export default {
         if(user.profession) {
             if(user.profession === "Coach") {
 
-
                 const coach = await Coach.findOne({ userId: user._id })
-
 
                 professionId = coach._id
                 profession = "Coach"

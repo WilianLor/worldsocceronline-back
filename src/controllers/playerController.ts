@@ -62,6 +62,8 @@ export default {
 
                 team.players.push(createdPlayer._id)
 
+                team.funds.total = team.funds.total + salary
+
                 await team.save()
 
                 return res.status(201).send({createdPlayer})
