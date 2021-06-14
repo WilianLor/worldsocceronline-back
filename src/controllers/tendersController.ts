@@ -16,7 +16,7 @@ export default {
 
     async teamSend(req:Request, res:Response){
 
-        const {coachId, monthsDuration, salary, contractPlan, termiantionFine} = req.body
+        const {coachId, monthsDuration, salary, contractPlan, terminationFine} = req.body
 
         const {authorization} = req.headers
 
@@ -50,12 +50,6 @@ export default {
                 return res.status(400).send({error: 'Coach already in this team'})
             }
 
-            if(coach.activeContract) {
-                if(!coach.activeContract.terminationFine) {
-                    return res.status(400).send({error: 'This coach dont have a termination fine.'})
-                }
-            }
-
             const teamId = president.teamId
 
             if(await Tenders.findOne({ teamId: teamId, coachId: coach._id })){
@@ -77,7 +71,7 @@ export default {
                 date,
                 monthsDuration,
                 salary,
-                termiantionFine,
+                terminationFine,
                 contractPlan
             }
 
@@ -94,6 +88,7 @@ export default {
             return res.status(201).send(tender)
 
         } catch (err) {
+            console.log('erro try - '+err)
             return res.status(400).send({error: 'Error: '+err})
         }
 
@@ -327,12 +322,27 @@ export default {
 
                     actualTeam.funds.payroll = actualTeam.funds.payroll - coach.activeContract.salary 
 
-                    if(coach.activeContract.termiantionFine){
+                    if(coach.activeContract.terminationFine){
     
                         team.funds.total = team.funds.total - coach.activeContract.terminationFine
+
+                        team.movements.push({
+                            description: `Multa recisória do treinador ${coach.username}`,
+                            value: coach.activeContract.terminationFine,
+                            type: false,
+                            date: new Date(),
+                            teamId: actualTeam._id
+                        })
     
                         actualTeam.funds.total = actualTeam.funds.total + coach.activeContract.terminationFine
 
+                        actualTeam.movements.push({
+                            description: `Multa recisória do treinador ${coach.username}`,
+                            value: coach.activeContract.terminationFine,
+                            type: true,
+                            date: new Date(),
+                            teamId: team._id
+                        })
                     }
                     
                 }
@@ -357,7 +367,7 @@ export default {
                     initialDate: date,
                     salary: tender.salary,
                     monthsDuration: tender.monthsDuration,
-                    termiantionFine: tender.termiantionFine
+                    terminationFine: tender.terminationFine
                 }
 
                 coach.activeContract = activeContract
@@ -479,11 +489,27 @@ export default {
 
                     actualTeam.funds.payroll = actualTeam.funds.payroll - coach.activeContract.salary 
 
-                    if(coach.activeContract.termiantionFine){
+                    if(coach.activeContract.terminationFine){
     
                         team.funds.total = team.funds.total - coach.activeContract.terminationFine
     
+                        team.movements.push({
+                            description: `Multa recisória do treinador ${coach.username}`,
+                            value: coach.activeContract.terminationFine,
+                            type: false,
+                            date: new Date(),
+                            teamId: actualTeam._id
+                        })
+    
                         actualTeam.funds.total = actualTeam.funds.total + coach.activeContract.terminationFine
+
+                        actualTeam.movements.push({
+                            description: `Multa recisória do treinador ${coach.username}`,
+                            value: coach.activeContract.terminationFine,
+                            type: true,
+                            date: new Date(),
+                            teamId: team._id
+                        })
 
                     }
                     

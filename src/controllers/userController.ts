@@ -326,6 +326,7 @@ export default {
                     initialDate: '',
                     salary: 0,
                     monthsDuration: 0,
+                    terminationFine: 0
                 },
                 career: coach.career
             }

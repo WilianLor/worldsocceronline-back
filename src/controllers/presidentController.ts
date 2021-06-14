@@ -152,8 +152,6 @@ export default {
 
             const team = await Team.findOne({ _id: TeamId })
 
-            console.log(president, team)
-
             if(!president){
                 return res.status(400).send({error: 'President not found'})
             }

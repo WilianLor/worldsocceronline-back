@@ -52,6 +52,7 @@ routes.get('/validate', UserController.validateUser)
 routes.post('/create/coach', authMiddleware ,CoachController.create)
 routes.get('/coaches/:onlyInterested/:countryId/:coachName', authMiddleware ,CoachController.getCoaches)
 routes.post('/coach/editdescription', authMiddleware ,CoachController.editDescription)
+routes.get('/getcoach/:coachId' , CoachController.getCoach)
 
 routes.get('/getprofile/:professionId', authMiddleware ,UserController.getUserProfile)
 

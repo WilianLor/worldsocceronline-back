@@ -2,54 +2,39 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const TeamSchema = new mongoose.Schema({
-    name: {
-        type:String,
-    },
     teamId: {
         type: Schema.Types.ObjectId,
         ref: 'Team',
+    },
+    position: {
+        type:Number
+    },
+    victories: {
+        type: Number
+    },
+    draws: {
+        type: Number
+    },
+    defeats: {
+        type: Number
+    },
+    concededGoals: {
+        type: Number
+    },
+    goalsScored: {
+        type: Number
     }
 })
 
 const GroupSchema = new mongoose.Schema({
-    teamId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Team',
+    groupName: {
+        type: String,
     },
-    points: {
-        type: Number,
-    },
-    games: {
-        type: Number,
-    },
-    victories: {
-        type: Number,
-    },
-    draws: {
-        type: Number,
-    },
-    defeats: {
-        type: Number,
-    }
+    teams: [TeamSchema]
 })
 
-const GameSchema = new mongoose.Schema({
-    visitingTeamId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Team',
-    },
-    homeTeam: {
-        type: Schema.Types.ObjectId,
-        ref: 'Team',
-    },
-    gameId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Game',
-    },
-    winnerId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Team',
-    }
+const GamesSchema = new mongoose.Schema({
+    gameId: Schema.Types.ObjectId,
 })
 
 const EliminatoryCompetitionSchema = new mongoose.Schema({
@@ -71,12 +56,11 @@ const EliminatoryCompetitionSchema = new mongoose.Schema({
         type: Number,
         require: true
     },
-    teams: [TeamSchema],
     group: [GroupSchema],
-    roundOf16Games:[GameSchema],
-    quarterFinalsGames:[GameSchema],
-    semiFinalsGames:[GameSchema],
-    finalGame: GameSchema,
+    roundOf16Games:[GamesSchema],
+    quarterFinalsGames:[GamesSchema],
+    semiFinalsGames:[GamesSchema],
+    finalGame: GamesSchema,
     winnerId: {
         type: Schema.Types.ObjectId,
         ref: 'Team'

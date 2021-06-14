@@ -18,6 +18,78 @@ const InterestCoaches = new mongoose.Schema({
     } 
 })
 
+const MovementsSchema = new mongoose.Schema({
+    description: {
+        type: String,
+    },
+    value: {
+        type: Number,
+    },
+    type: {
+        type: Boolean
+    },
+    date: {
+        type: Date
+    },
+    teamId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Team'
+    }
+})
+
+const PlayerSchema = new mongoose.Schema({
+    playerId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Player'
+    }
+})
+
+const LineupSchema = new mongoose.Schema({
+    formation: {
+        type: Number,
+        required: true
+    },
+    titularPlayers: [PlayerSchema],
+    reservePlayers: [PlayerSchema]
+})
+
+const ExpertsSchema = new mongoose.Schema({
+    penalty: PlayerSchema,
+    foul: PlayerSchema,
+    captain: PlayerSchema,
+    cornerRight: PlayerSchema,
+    cornerLeft: PlayerSchema
+})
+
+const LineTaticsScheme = new mongoose.Schema({
+    forwards: {
+        type: Number
+    },
+    midfielders: {
+        type: Number
+    },
+    defencers: {
+        type: Number
+    }
+})
+
+const TaticsSchema = new mongoose.Schema({
+    experts: ExpertsSchema,
+    lineTatics: LineTaticsScheme,
+    pressure: {
+        type: Number
+    },
+    typeOfPlay: {
+        type: Number
+    },
+    styleOfPlay: {
+        type: Number
+    },
+    marking: {
+        type: Number
+    }
+})
+
 const FundsSchema = new mongoose.Schema({
     total: {
         type: Number,
@@ -27,12 +99,46 @@ const FundsSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    movements: [MovementsSchema]
+})
+
+const StadiumSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: String
+    },
+    capacityLevel: {
+        type: Number,
+        required: true,
+    },
+    city: {
+        type: String,
+        required: true
+    }
+})
+
+const ResultsSchema = new mongoose.Schema({
+    gameId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Game'
+    }
+})
+
+const RetrospectSchema = new mongoose.Schema({
+    result: {
+        type: String,
+    },
+    gameId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Game'
+    }
 })
 
 const TeamSchema = new mongoose.Schema({
     name: {
         type: String,
-        require: true
+        require: true,
+        unique: true
     },
     pictureUrl: {
         type: String,
@@ -57,6 +163,7 @@ const TeamSchema = new mongoose.Schema({
         ref: 'RunningPointsCompetition',
         required: true
     },
+    results: [ResultsSchema],
     coachId: {
         type: Schema.Types.ObjectId,
         ref: 'Coach'
@@ -65,13 +172,17 @@ const TeamSchema = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: 'President'
     },
+    stadium: StadiumSchema,
     funds: FundsSchema,
     players: [{
         type: Schema.Types.ObjectId,
         ref: 'Player'
     }],
     tenders: [TeamTendersSchema],
-    interestedCoaches: [InterestCoaches]
+    interestedCoaches: [InterestCoaches],
+    retrospect: [RetrospectSchema],
+    lineup: LineupSchema,
+    tatics: TaticsSchema
 })
 
 const Team = mongoose.model('Team', TeamSchema)

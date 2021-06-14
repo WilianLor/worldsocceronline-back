@@ -2,9 +2,6 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const TeamSchema = new mongoose.Schema({
-    name: {
-        type:String,
-    },
     teamId: {
         type: Schema.Types.ObjectId,
         ref: 'Team',
@@ -26,28 +23,6 @@ const TeamSchema = new mongoose.Schema({
     },
     goalsScored: {
         type: Number
-    },
-    goalDifference: {
-        type: Number
-    }
-})
-
-const GameSchema = new mongoose.Schema({
-    visitingTeam: {
-        type: Schema.Types.ObjectId,
-        ref: 'Team',
-    },
-    homeTeam: {
-        type: Schema.Types.ObjectId,
-        ref: 'Team',
-    },
-    gameId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Game',
-    },
-    winnerId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Team',
     }
 })
 
@@ -62,6 +37,10 @@ const RegionalCompetition = new mongoose.Schema({
     maxPositionForQualify: {
         type: Number
     }
+})
+
+const GamesSchema = new mongoose.Schema({
+    gameId: Schema.Types.ObjectId,
 })
 
 const RunningPointsCompetitionSchema = new mongoose.Schema({
@@ -83,13 +62,10 @@ const RunningPointsCompetitionSchema = new mongoose.Schema({
         ref: 'Country',
         require: true
     },
+    games: [GamesSchema],
     teams: [TeamSchema],
     qualifyForMainRegionalCompetition: RegionalCompetition,
     qualifyForSecondaryRegionalCompetition: RegionalCompetition,
-    winnerId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Team',
-    },
     award: {
         type: Number
     }

@@ -2,7 +2,7 @@ import {Request, Response} from 'express'
 const Country = require('../models/Countries')
 const Region = require('../models/Regions')
 const RunningPointsCompetition = require('../models/RunningPointsCompetitions')
-
+ 
 export default {
 
     async create(req:Request, res:Response){

@@ -112,6 +112,17 @@ export default {
 
             const coach = await Coach.findOne({_id: team.coachId})
 
+            if(coach.activeContract.terminationFine) {
+                team.funds.total = team.funds.total - coach.activeContract.terminationFine
+                coach.cash = coach.cash + coach.activeContract.terminationFine
+                team.movements.push({
+                    description: `Multa recisória do treinador ${coach.username}`,
+                    value: coach.activeContract.terminationFine,
+                    type: false,
+                    date: new Date(),
+                })
+            }
+
             if(!coach){
                 return res.status(400).send({error: 'Coach id is invalid'})
             }

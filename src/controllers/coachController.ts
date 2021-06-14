@@ -221,6 +221,7 @@ export default {
             }
 
             const coachData = {
+                _id: coach._id,
                 userId: coach.userId,
                 username: coach.username,
                 description: coach.description,
@@ -235,7 +236,7 @@ export default {
                     initialDate: '',
                     salary: 0,
                     monthsDuration: 0,
-                    terminationFine: undefined,
+                    terminationFine: 0,
                 },
                 career: coach.career
             }
