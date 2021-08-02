@@ -1,15 +1,15 @@
-const mongoose = require('mongoose')
-const Schema = mongoose.Schema
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
 
 const CoachTendersSchema = new mongoose.Schema({
   tendersId: {
     type: Schema.Types.ObjectId,
-    ref: 'Tenders',
+    ref: "Tenders",
   },
   method: {
-    type: String
-  }
-})
+    type: String,
+  },
+});
 
 const statisticsSchema = new mongoose.Schema({
   games: {
@@ -27,13 +27,13 @@ const statisticsSchema = new mongoose.Schema({
   losts: {
     type: Number,
     default: 0,
-  }
-})
+  },
+});
 
 const ActiveContractSchema = new mongoose.Schema({
   teamId: {
     type: Schema.Types.ObjectId,
-    ref: 'Team',
+    ref: "Team",
   },
   initialDate: {
     type: Date,
@@ -41,70 +41,67 @@ const ActiveContractSchema = new mongoose.Schema({
   salary: {
     type: Number,
   },
-  monthsDuration: {
+  seasonsDuration: {
     type: Number,
   },
   terminationFine: {
-    type: Number
+    type: Number,
   },
   teamStatistics: statisticsSchema,
-})
+});
 
 const CareerSchema = new mongoose.Schema({
   teamId: {
     type: Schema.Types.ObjectId,
-    ref: 'Team',
+    ref: "Team",
   },
   initialDate: {
     type: Date,
   },
   finalDate: {
-    type: Date
-  }
-})
+    type: Date,
+  },
+});
 
-const interestTeamsSchema =  new mongoose.Schema({
+const interestTeamsSchema = new mongoose.Schema({
   teamId: {
     type: Schema.Types.ObjectId,
-        ref: 'Team',
-  }
-})
+    ref: "Team",
+  },
+});
 
 const CoachSchema = new mongoose.Schema({
   username: {
-    type:String,
-    required: true
+    type: String,
+    required: true,
   },
   userId: {
     type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    ref: "User",
+    required: true,
   },
   teamId: {
     type: Schema.Types.ObjectId,
-    ref: 'Team',
+    ref: "Team",
   },
   countryId: {
     type: Schema.Types.ObjectId,
-    ref: 'Country',
-    require: true
-  },  
+    ref: "Country",
+    require: true,
+  },
   description: {
     type: String,
   },
   cash: {
     type: Number,
-    required: true
+    required: true,
   },
   statistics: statisticsSchema,
   activeContract: ActiveContractSchema,
-  career: [
-    CareerSchema,
-  ],
+  career: [CareerSchema],
   interestTeams: [interestTeamsSchema],
-  tenders: [CoachTendersSchema]
-})
+  tenders: [CoachTendersSchema],
+});
 
-
-const Coach = mongoose.model('Coach', CoachSchema)
-module.exports = Coach
+const Coach = mongoose.model("Coach", CoachSchema);
+module.exports = Coach;

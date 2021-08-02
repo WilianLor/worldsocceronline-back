@@ -1,7 +1,9 @@
 const jwt = require("jsonwebtoken");
 const authConfig = require("../config/auth.json");
 
-module.exports = (req, res, next) => {
+const User = require("../models/Users");
+
+module.exports = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -23,13 +25,21 @@ module.exports = (req, res, next) => {
     return res.status(401).send({ error: "Token Malformatted" });
   }
 
-  jwt.verify(token, authConfig.secret, (err, decoded) => {
+  const userId = jwt.verify(token, authConfig.secret, (err, decoded) => {
     if (err) {
       console.log("Token Invalid");
       return res.status(401).send({ error: "Token Invalid" });
     }
 
     req.userId = decoded.id;
-    return next();
+    return req.userId;
   });
+
+  const user = await User.findOne({ _id: userId });
+
+  if (!user.admin) {
+    return res.status(403).send({ error: "You are not an administrator" });
+  }
+
+  return next()
 };

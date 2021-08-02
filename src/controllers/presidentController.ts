@@ -1,253 +1,247 @@
-const President = require('../models/Presidents')
-const User = require('../models/Users')
-const Team = require('../models/Teams')
-import {Request, Response} from 'express'
-const jwt = require('jsonwebtoken')
-import jwt_decode from 'jwt-decode'
+const President = require("../models/Presidents");
+const User = require("../models/Users");
+const Team = require("../models/Teams");
+import { Request, Response } from "express";
+const jwt = require("jsonwebtoken");
+import jwt_decode from "jwt-decode";
 
 interface data {
-    id: string,
+  id: string;
 }
 
-const authConfig = require('../config/auth.json')
+const authConfig = require("../config/auth.json");
 
 function generateToken(params = {}) {
-    return jwt.sign(params, authConfig.secret, {
-        expiresIn: 86400,
-    })
+  return jwt.sign(params, authConfig.secret, {
+    expiresIn: 86400,
+  });
 }
 
 export default {
+  async create(req: Request, res: Response) {
+    const { authorization } = req.headers;
 
-    async create(req: Request, res: Response){
-        const {authorization} = req.headers
+    const tokenSplited = authorization.split(" ");
 
-        const tokenSplited = authorization.split(' ') 
+    const token = tokenSplited[1];
 
-        const token = tokenSplited[1]
+    const data: data = jwt_decode(token);
 
-        const data: data = jwt_decode(token)
+    const { id } = data;
 
-        const {id} = data
+    const user = await User.findOne({ _id: id });
 
-        const user = await User.findOne({ _id: id })
+    try {
+      if (await President.findOne({ username: user.username })) {
+        return res.status(400).send({ error: "You are already registered" });
+      }
 
-        try {
-            if(await President.findOne({ username: user.username })){
-                return res.status(400).send({ error: 'You are already registered'})
-            }
+      await User.findOne({ username: user.username }).update({
+        profession: "President",
+      });
 
-            await User.findOne({ username: user.username }).update({profession: "President"})
+      const presidentData = {
+        username: user.username,
+        userId: id,
+        countryId: user.countryId,
+      };
 
-            const presidentData = {
-                username: user.username,
-                userId: id,
-                countryId: user.countryId,
-            }
+      const president = await President.create(presidentData);
 
-            const president = await President.create(presidentData)
+      const data = {
+        token: generateToken({ id: president.userId, profession: "President", passwordVersion: user.passwordVersion }),
+        profession: "President",
+        user: {
+          userId: user._id,
+          professionId: president._id,
+          username: user.username,
+          country: user.country,
+          teamId: "",
+          admin: user.admin,
+          passwordVersion: user.passwordVersion,
+        },
+      };
 
-            const data = {
-                token: generateToken({ id: president.userId, profession: 'President'}),
-                profession: "President",
-                user: {
-                    userId: user._id,
-                    professionId: president._id,
-                    username: user.username,
-                    country: user.country,
-                    teamId: "",
-                    admin: user.admin,
-                    passwordVersion: user.passwordVersion
-                }
-            } 
-    
-            return res.status(201).send({ data })
+      return res.status(201).send({ data });
+    } catch (err) {
+      return res.status(400).send({ error: "Operation failed" + err });
+    }
+  },
 
-        } catch (err) {
-            return res.status(400).send({ error: 'Operation failed' + err})
-        }
-    },
+  async editDescription(req: Request, res: Response) {
+    const { authorization } = req.headers;
 
-    async editDescription(req:Request, res:Response) {
-        const {authorization} = req.headers
+    const { description } = req.body;
 
-        const {description} = req.body
+    const tokenSplited = authorization.split(" ");
 
-        const tokenSplited = authorization.split(' ') 
+    const token = tokenSplited[1];
 
-        const token = tokenSplited[1]
+    const data: data = jwt_decode(token);
 
-        const data: data = jwt_decode(token)
+    const { id } = data;
 
-        const {id} = data
+    try {
+      const president = await President.findOne({ userId: id });
 
-        try {
-            const president = await President.findOne({ userId: id })
+      if (!president) {
+        return res.status(400).send({ error: "President not found" });
+      }
 
-            if(!president) {
-                return res.status(400).send({error: 'President not found'})
-            }
-            
-            if(description.length > 200) {
-                return res.status(400).send({error: 'Max caracter limit esxeded.'})
-            }
+      if (description.length > 200) {
+        return res.status(400).send({ error: "Max caracter limit esxeded." });
+      }
 
-            president.description = description
+      president.description = description;
 
-            await president.save()
+      await president.save();
 
-            return res.status(200).send({message: 'Descrição atualizada.'})
+      return res.status(200).send({ message: "Descrição atualizada." });
+    } catch (err) {
+      return res.status(400).send({ error: "Erro: " + err });
+    }
+  },
 
-        } catch (err) {
-            return res.status(400).send({error: 'Erro: '+err})
-        }
+  async getPresident(req: Request, res: Response) {
+    try {
+      const { authorization } = req.headers;
 
-    },
+      const tokenSplited = authorization.split(" ");
 
-    async getPresident(req: Request, res: Response){
-        try {
-            const {authorization} = req.headers
+      const token = tokenSplited[1];
 
-            const tokenSplited = authorization.split(' ') 
+      const data: data = jwt_decode(token);
 
-            const token = tokenSplited[1]
+      const { id } = data;
 
-            const data: data = jwt_decode(token)
+      const president = await President.findOne({ userId: id });
 
-            const {id} = data
+      return res.status(201).send({ president });
+    } catch (err) {
+      return res.status(400).send({ error: "Operation failed" + err });
+    }
+  },
 
-            const president = await President.findOne({ userId: id })
+  async getIndex(req: Request, res: Response) {},
 
-            return res.status(201).send({ president })
+  async getAll(req: Request, res: Response) {},
 
-        } catch (err) {
-            return res.status(400).send({ error: 'Operation failed' + err})
-        }
-    },
+  async joinTeam(req: Request, res: Response) {
+    const { authorization } = req.headers;
 
-    async getIndex(req: Request, res: Response){
+    const { TeamId } = req.body;
 
-    },
+    const tokenSplited = authorization.split(" ");
 
-    async getAll(req: Request, res: Response){
+    const token = tokenSplited[1];
 
-    },
+    const data: data = jwt_decode(token);
 
-    async joinTeam(req: Request, res: Response){
-        const {authorization} = req.headers
+    const { id } = data;
 
-        const {TeamId} = req.body
+    try {
+      const president = await President.findOne({ userId: id });
 
-        const tokenSplited = authorization.split(' ') 
+      const team = await Team.findOne({ _id: TeamId });
 
-        const token = tokenSplited[1]
+      if (!president) {
+        return res.status(400).send({ error: "President not found" });
+      }
 
-        const data: data = jwt_decode(token)
+      if (president.teamId !== undefined) {
+        return res
+          .status(400)
+          .send({ error: "This president already has a team" });
+      }
 
-        const {id} = data
+      if (!team) {
+        return res.status(400).send({ error: "Team not found" });
+      }
 
-        try {
+      if (team.presidentId !== undefined) {
+        return res
+          .status(400)
+          .send({ error: "This team already has a president" });
+      }
 
-            const president = await President.findOne({ userId: id })
+      const date = new Date();
 
-            const team = await Team.findOne({ _id: TeamId })
+      team.presidentId = president._id;
 
-            if(!president){
-                return res.status(400).send({error: 'President not found'})
-            }
+      president.teamId = team._id;
+      president.activeMandate = {
+        teamId: team._id,
+        initialDate: date,
+      };
 
-            if(president.teamId !== undefined){
-                return res.status(400).send({error: 'This president already has a team'})
-            }
+      await team.save();
+      await president.save();
 
-            if(!team){
-                return res.status(400).send({error: 'Team not found'})
-            }
+      return res.status(201).send({ message: "President has a new team" });
+    } catch (err) {
+      return res.status(400).send({ error: "Error: " + err });
+    }
+  },
 
-            if(team.presidentId !== undefined){
-                return res.status(400).send({error: 'This team already has a president'})
-            }
+  async leaveTeam(req: Request, res: Response) {
+    const { authorization } = req.headers;
 
-            const date = new Date()
+    const tokenSplited = authorization.split(" ");
 
-            team.presidentId = president._id
+    const token = tokenSplited[1];
 
-            president.teamId = team._id
-            president.activeMandate = {
-                teamId: team._id,
-                initialDate: date
-            }
+    const data: data = jwt_decode(token);
 
-            await team.save()
-            await president.save()
+    const { id } = data;
 
-            return res.status(201).send({message: 'President has a new team'})
+    try {
+      const president = await President.findOne({ userId: id });
 
-        } catch (err) {
-            return res.status(400).send({error: 'Error: '+err})
-        }
-    },
+      if (!president) {
+        return res.status(400).send({ error: "President not found" });
+      }
 
-    async leaveTeam(req:Request, res:Response){
-        const {authorization} = req.headers
+      if (president.teamId === undefined) {
+        return res.status(400).send({ error: "This president not has a team" });
+      }
 
-        const tokenSplited = authorization.split(' ') 
+      const team = await Team.findOne({ _id: president.teamId });
 
-        const token = tokenSplited[1]
+      if (!team) {
+        return res.status(400).send({ error: "Team id is invalid" });
+      }
 
-        const data: data = jwt_decode(token)
+      if (team.presidentId === undefined) {
+        return res.status(400).send({ error: "This team not has a president" });
+      }
 
-        const {id} = data
+      const { teamId, initialDate } = president.activeMandate;
 
-        try {
-            
-            const president = await President.findOne({ userId: id})
+      president.activeMandate = undefined;
 
-            if(!president){
-                return res.status(400).send({ error: 'President not found' })
-            }
+      president.teamId = undefined;
 
-            if(president.teamId === undefined){
-                return res.status(400).send({ error: 'This president not has a team' })
-            }
+      const date = new Date();
 
-            const team = await Team.findOne({_id: president.teamId})
+      const careerStage = {
+        teamId,
+        initialDate,
+        finalDate: date,
+      };
 
-            if(!team){
-                return res.status(400).send({error: 'Team id is invalid'})
-            }
+      president.career.push(careerStage);
 
-            if(team.presidentId === undefined){
-                return res.status(400).send({error: 'This team not has a president'})
-            }
+      await president.save();
 
-            const {teamId, initialDate} = president.activeMandate
+      team.presidentId = undefined;
 
-            president.activeMandate = undefined
+      await team.save();
 
-            president.teamId = undefined
-
-            const date = new Date()
-
-            const careerStage = {
-                teamId,
-                initialDate,
-                finalDate: date
-            }
-            
-            president.career.push(careerStage)
-
-            await president.save()
-
-            team.presidentId = undefined
-
-            await team.save()
-
-            return res.status(200).send({message: 'Success, this president no longer has a team'})
-
-        } catch (err) {
-            return res.status(400).send({error: 'Error '+err})
-        }
-    },
-
-}
+      return res
+        .status(200)
+        .send({ message: "Success, this president no longer has a team" });
+    } catch (err) {
+      return res.status(400).send({ error: "Error " + err });
+    }
+  },
+};
